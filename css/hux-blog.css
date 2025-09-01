@@ -1089,3 +1089,68 @@ img::-moz-selection {
 .page-fullscreen footer .copyright a:hover {
   color: #ddd;
 }
+
+/* About Page Styles */
+.zh .education-item {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #0085a1;
+    transition: all 0.3s ease;
+}
+
+.zh .education-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.zh .education-item h5 {
+    color: #0085a1;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.zh .education-item p {
+    margin-bottom: 0;
+    color: #555;
+    font-size: 15px;
+}
+
+.zh h3 {
+    color: #2c3e50;
+    margin-top: 35px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #0085a1;
+    font-weight: 600;
+}
+
+.zh h3:first-of-type {
+    margin-top: 25px;
+}
+
+.zh ul li {
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.zh .post-container {
+    line-height: 1.8;
+}
+
+.zh blockquote {
+    border-left: 4px solid #0085a1;
+    background: #f8f9fa;
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 0 8px 8px 0;
+}
+
+.zh blockquote p {
+    margin: 0;
+    font-style: italic;
+    color: #555;
+}
