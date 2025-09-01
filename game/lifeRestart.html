@@ -648,7 +648,7 @@ layout: null
 
             async loadEvents() {
                 try {
-                    const response = await fetch('lifeEvents.txt');
+                    const response = await fetch('/game/lifeEvents.txt');
                     if (!response.ok) {
                         throw new Error('Failed to load events file');
                     }
