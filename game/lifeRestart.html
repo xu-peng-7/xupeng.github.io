@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人生重开模拟器 - Dec20B</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #667eea;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.3);
+        }
+
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: #8e9aaf;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .game-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .game-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 属性布局 - 一行显示 */
+        .attributes-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .attribute-item {
+            background: linear-gradient(135deg, #f8f9ff, #f0f2ff);
+            padding: 15px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            text-align: center;
+            flex: 1;
+            min-width: 130px;
+            transition: all 0.3s ease;
+        }
+
+        .attribute-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        }
+
+        .attribute-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .attribute-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .attr-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .attr-btn.minus {
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+            color: white;
+        }
+
+        .attr-btn.plus {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .attr-btn:hover:not(:disabled) {
+            transform: scale(1.15);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .attr-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .attribute-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            min-width: 25px;
+        }
+
+        .points-remaining {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8f9ff, #f0f2ff);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .control-buttons {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            margin: 5px;
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 紧凑的当前状态显示 */
+        .current-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stat-mini {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 15px;
+            text-align: center;
+            flex: 1;
+            min-width: 70px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-mini:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-mini-label {
+            font-size: 10px;
+            opacity: 0.9;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-mini-value {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .life-events {
+            background: linear-gradient(135deg, #f8f9fa, #f0f2f5);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .life-events::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .life-events::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 3px;
+        }
+
+        .life-events::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 3px;
+        }
+
+        .life-events::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.5);
+        }
+
+        .event-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            opacity: 0;
+            animation: slideIn 0.6s ease forwards;
+            transition: all 0.3s ease;
+        }
+
+        .event-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .event-age {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .event-age::before {
+            content: "📅";
+            font-size: 12px;
+        }
+
+        .event-description {
+            color: #2c3e50;
+            line-height: 1.5;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .event-effects {
+            font-size: 12px;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 6px 10px;
+            border-radius: 15px;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .loading-indicator {
+            text-align: center;
+            color: #8e9aaf;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .final-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .achievements {
+            background: linear-gradient(135deg, #fff9e6, #fff3d3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        .achievement-item {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ffd700;
+            font-size: 14px;
+            color: #2c3e50;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .achievement-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .progress-bar {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .age-indicator {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 25px;
+                margin: 10px;
+                margin-top: 60px;
+            }
+
+            .title {
+                font-size: 2em;
+            }
+
+            .attributes-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .attribute-item {
+                min-width: auto;
+            }
+
+            .current-stats {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .stat-mini {
+                min-width: 60px;
+                padding: 8px 10px;
+            }
+
+            .back-link {
+                top: 15px;
+                right: 15px;
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+
+            .life-events {
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../game/" class="back-link">← 游戏中心</a>
+
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">人生重开模拟器</h1>
+            <p class="subtitle">体验不同的人生轨迹，看看命运会如何安排</p>
+        </div>
+
+        <!-- 属性分配阶段 -->
+        <div class="game-section active" id="attributeSection">
+            <div class="section-title">🎯 分配你的初始属性</div>
+            <div class="points-remaining">
+                剩余点数: <span id="remainingPoints">20</span> / 20
+            </div>
+            
+            <div class="attributes-container">
+                <div class="attribute-item">
+                    <div class="attribute-name">🧠 智力</div>
+                    <div class="attribute-controls">
+                        <button class="attr-btn minus" onclick="changeAttribute('intelligence', -1)">−</button>
+                        <div class="attribute-value" id="intelligence">0</div>
+                        <button class="attr-btn plus" onclick="changeAttribute('intelligence', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="attribute-item">
+                    <div class="attribute-name">💪 体质</div>
+                    <div class="attribute-controls">
+                        <button class="attr-btn minus" onclick="changeAttribute('constitution', -1)">−</button>
+                        <div class="attribute-value" id="constitution">0</div>
+                        <button class="attr-btn plus" onclick="changeAttribute('constitution', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="attribute-item">
+                    <div class="attribute-name">😊 快乐</div>
+                    <div class="attribute-controls">
+                        <button class="attr-btn minus" onclick="changeAttribute('happiness', -1)">−</button>
+                        <div class="attribute-value" id="happiness">0</div>
+                        <button class="attr-btn plus" onclick="changeAttribute('happiness', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="attribute-item">
+                    <div class="attribute-name">🎨 魅力</div>
+                    <div class="attribute-controls">
+                        <button class="attr-btn minus" onclick="changeAttribute('charm', -1)">−</button>
+                        <div class="attribute-value" id="charm">0</div>
+                        <button class="attr-btn plus" onclick="changeAttribute('charm', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="btn secondary" onclick="randomAttributes()">🎲 随机分配</button>
+                <button class="btn" id="startLifeBtn" onclick="startLife()" disabled>🚀 开始人生</button>
+            </div>
+        </div>
+
+        <!-- 人生模拟阶段 -->
+        <div class="game-section" id="lifeSection">
+            <div class="section-title">📖 你的人生轨迹</div>
+            
+            <div class="age-indicator">
+                人生进度: <span id="ageProgress">0</span> / 80 岁
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="current-stats" id="currentStats">
+                <div class="stat-mini">
+                    <div class="stat-mini-label">年龄</div>
+                    <div class="stat-mini-value" id="currentAge">0</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-label">智力</div>
+                    <div class="stat-mini-value" id="currentIntelligence">0</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-label">体质</div>
+                    <div class="stat-mini-value" id="currentConstitution">0</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-label">快乐</div>
+                    <div class="stat-mini-value" id="currentHappiness">0</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-label">魅力</div>
+                    <div class="stat-mini-value" id="currentCharm">0</div>
+                </div>
+            </div>
+
+            <div class="life-events" id="lifeEvents">
+                <div class="loading-indicator">人生即将开始...</div>
+            </div>
+            
+            <div class="control-buttons">
+                <button class="btn secondary" onclick="pauseLife()" id="pauseBtn" style="display: none;">⏸️ 暂停</button>
+                <button class="btn secondary" onclick="resumeLife()" id="resumeBtn" style="display: none;">▶️ 继续</button>
+                <button class="btn" onclick="skipToEnd()" id="skipBtn">⏭️ 跳到结尾</button>
+                <button class="btn" onclick="showResults()" style="display: none;" id="showResultsBtn">📊 查看人生总结</button>
+            </div>
+        </div>
+
+        <!-- 结果展示阶段 -->
+        <div class="game-section" id="resultsSection">
+            <div class="section-title">🏆 人生总结</div>
+            
+            <div class="final-stats" id="finalStats"></div>
+            
+            <div class="achievements" id="achievements">
+                <div class="section-title">🎖️ 获得成就</div>
+                <div id="achievementsList"></div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="btn" onclick="restartGame()">🔄 重开人生</button>
+                <button class="btn secondary" onclick="quickRestart()">🎲 随机重开</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class LifeRestartGame {
+            constructor() {
+                this.attributes = {
+                    intelligence: 0,
+                    constitution: 0,
+                    happiness: 0,
+                    charm: 0
+                };
+                this.remainingPoints = 20;
+                this.age = 0;
+                this.lifeEvents = [];
+                this.usedEvents = new Set();
+                this.achievements = [];
+                this.isGameRunning = false;
+                this.isPaused = false;
+                this.maxAge = 80;
+                this.gameSpeed = 1200; // 调整显示速度
+                this.allEvents = [];
+                this.eventsLoaded = false;
+                this.loadEvents();
+            }
+
+            async loadEvents() {
+                try {
+                    const response = await fetch('lifeEvents.txt');
+                    if (!response.ok) {
+                        throw new Error('Failed to load events file');
+                    }
+                    const text = await response.text();
+                    const lines = text.split('\n').filter(line => line.trim() && line.includes('|'));
+                    
+                    console.log(`加载了 ${lines.length} 个事件`);
+                    
+                    this.allEvents = lines.map((line, index) => {
+                        try {
+                            const parts = line.split('|');
+                            if (parts.length < 2) {
+                                console.warn(`事件格式错误 (行 ${index + 1}): ${line}`);
+                                return null;
+                            }
+                            
+                            const [ageRange, description, effects] = parts;
+                            const [minAge, maxAge] = ageRange.split('-').map(Number);
+                            
+                            const effectsObj = {};
+                            if (effects && effects.trim()) {
+                                effects.split(',').forEach(effect => {
+                                    const [attr, value] = effect.split(':');
+                                    if (attr && value) {
+                                        effectsObj[attr.trim()] = parseInt(value);
+                                    }
+                                });
+                            }
+                            
+                            return {
+                                minAge: minAge || 0,
+                                maxAge: maxAge || 80,
+                                text: description.trim(),
+                                effects: effectsObj,
+                                id: `event_${index}_${minAge}_${maxAge}`
+                            };
+                        } catch (error) {
+                            console.warn(`解析事件失败 (行 ${index + 1}): ${line}`, error);
+                            return null;
+                        }
+                    }).filter(event => event !== null);
+                    
+                    this.eventsLoaded = true;
+                    console.log(`成功加载 ${this.allEvents.length} 个有效事件`);
+                } catch (error) {
+                    console.error('加载事件文件失败:', error);
+                    this.loadDefaultEvents();
+                }
+            }
+
+            loadDefaultEvents() {
+                console.log('使用默认事件数据');
+                this.allEvents = [
+                    {minAge: 0, maxAge: 10, text: "你出生了！家人都很高兴。", effects: {happiness: 1}, id: "birth"},
+                    {minAge: 1, maxAge: 10, text: "你学会了走路，家人为你感到骄傲。", effects: {constitution: 1, happiness: 1}, id: "walk"},
+                    {minAge: 2, maxAge: 10, text: "你开始说话，显示出语言天赋。", effects: {intelligence: 1, charm: 1}, id: "talk"},
+                    {minAge: 3, maxAge: 10, text: "你在幼儿园交到了朋友。", effects: {happiness: 2, charm: 1}, id: "friend"},
+                    {minAge: 5, maxAge: 15, text: "你学会了骑自行车。", effects: {constitution: 1, happiness: 2}, id: "bike"},
+                    {minAge: 11, maxAge: 18, text: "你进入了中学，学习压力增大。", effects: {intelligence: 1, happiness: -1}, id: "school"},
+                    {minAge: 15, maxAge: 25, text: "你开始学习编程。", effects: {intelligence: 2, happiness: 1}, id: "programming"},
+                    {minAge: 19, maxAge: 30, text: "你进入了大学。", effects: {intelligence: 2, happiness: 2}, id: "university"},
+                    {minAge: 22, maxAge: 35, text: "你找到了第一份工作。", effects: {intelligence: 1, happiness: 2}, id: "job"},
+                    {minAge: 25, maxAge: 40, text: "你开始了恋爱关系。", effects: {happiness: 3, charm: 1}, id: "love"},
+                    {minAge: 30, maxAge: 50, text: "你在事业上取得突破。", effects: {intelligence: 2, happiness: 3}, id: "career"},
+                    {minAge: 35, maxAge: 55, text: "你结婚了。", effects: {happiness: 4, charm: 1}, id: "marriage"},
+                    {minAge: 40, maxAge: 60, text: "你有了孩子。", effects: {happiness: 3, constitution: -1}, id: "children"},
+                    {minAge: 55, maxAge: 80, text: "你开始享受退休生活。", effects: {happiness: 2, constitution: -1}, id: "retire"},
+                    {minAge: 60, maxAge: 80, text: "你成为了祖父母。", effects: {happiness: 3}, id: "grandparent"}
+                ];
+                this.eventsLoaded = true;
+                console.log(`加载了 ${this.allEvents.length} 个默认事件`);
+            }
+
+            init() {
+                this.updateAttributeDisplay();
+                this.updatePointsDisplay();
+            }
+
+            changeAttribute(attr, delta) {
+                if (delta > 0 && this.remainingPoints <= 0) return;
+                if (delta < 0 && this.attributes[attr] <= 0) return;
+                if (delta > 0 && this.attributes[attr] >= 10) return;
+
+                this.attributes[attr] += delta;
+                this.remainingPoints -= delta;
+
+                this.updateAttributeDisplay();
+                this.updatePointsDisplay();
+                this.updateButtonStates();
+            }
+
+            randomAttributes() {
+                this.attributes = {intelligence: 0, constitution: 0, happiness: 0, charm: 0};
+                let points = 20;
+                
+                const attrs = Object.keys(this.attributes);
+                while (points > 0) {
+                    const attr = attrs[Math.floor(Math.random() * attrs.length)];
+                    if (this.attributes[attr] < 10) {
+                        this.attributes[attr]++;
+                        points--;
+                    }
+                }
+                
+                this.remainingPoints = 0;
+                this.updateAttributeDisplay();
+                this.updatePointsDisplay();
+                this.updateButtonStates();
+            }
+
+            updateAttributeDisplay() {
+                Object.keys(this.attributes).forEach(attr => {
+                    document.getElementById(attr).textContent = this.attributes[attr];
+                });
+            }
+
+            updatePointsDisplay() {
+                document.getElementById('remainingPoints').textContent = this.remainingPoints;
+                document.getElementById('startLifeBtn').disabled = this.remainingPoints > 0;
+            }
+
+            updateButtonStates() {
+                Object.keys(this.attributes).forEach(attr => {
+                    const container = document.querySelector(`#${attr}`).parentElement;
+                    const minusBtn = container.querySelector('.minus');
+                    const plusBtn = container.querySelector('.plus');
+                    
+                    minusBtn.disabled = this.attributes[attr] <= 0;
+                    plusBtn.disabled = this.remainingPoints <= 0 || this.attributes[attr] >= 10;
+                });
+            }
+
+            async startLife() {
+                if (this.remainingPoints > 0) return;
+                
+                // 等待事件加载完成
+                while (!this.eventsLoaded) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                this.showSection('lifeSection');
+                this.age = 0;
+                this.lifeEvents = [];
+                this.usedEvents = new Set(); // 重新初始化，确保清空
+                this.isGameRunning = true;
+                this.isPaused = false;
+                
+                // 清空事件容器
+                const eventsContainer = document.getElementById('lifeEvents');
+                eventsContainer.innerHTML = '<div class="loading-indicator">人生开始了...</div>';
+                
+                console.log(`开始新人生，共有 ${this.allEvents.length} 个事件可用`);
+                
+                this.updateCurrentStats();
+                this.updateProgress();
+                
+                // 显示控制按钮
+                document.getElementById('pauseBtn').style.display = 'inline-block';
+                document.getElementById('skipBtn').style.display = 'inline-block';
+                document.getElementById('showResultsBtn').style.display = 'none';
+                
+                setTimeout(() => this.simulateLife(), 1000);
+            }
+
+            simulateLife() {
+                if (!this.isGameRunning || this.isPaused) return;
+                
+                if (this.age >= this.maxAge || this.attributes.constitution <= 0) {
+                    this.endLife();
+                    return;
+                }
+
+                this.age++;
+                
+                // 自然变化
+                this.applyAging();
+                
+                // 确保每年都有事件 - 修复跳跃问题
+                let event = this.getRandomEvent();
+                if (!event) {
+                    // 如果没有专门的事件，创建通用事件
+                    const genericEvents = this.getGenericEventsForAge(this.age);
+                    event = genericEvents[Math.floor(Math.random() * genericEvents.length)];
+                }
+                
+                this.processEvent(event);
+                this.updateCurrentStats();
+                this.updateProgress();
+                
+                if (this.isGameRunning && !this.isPaused) {
+                    setTimeout(() => this.simulateLife(), this.gameSpeed);
+                }
+            }
+
+            applyAging() {
+                if (this.age > 40) {
+                    this.attributes.constitution = Math.max(0, this.attributes.constitution - 0.03);
+                }
+                
+                if (this.age > 60) {
+                    this.attributes.constitution = Math.max(0, this.attributes.constitution - 0.05);
+                }
+                
+                // 小幅随机变化
+                if (Math.random() < 0.2) {
+                    const attrs = Object.keys(this.attributes);
+                    const attr = attrs[Math.floor(Math.random() * attrs.length)];
+                    const change = (Math.random() - 0.5) * 0.1;
+                    this.attributes[attr] = Math.max(0, Math.min(10, this.attributes[attr] + change));
+                }
+            }
+
+            getRandomEvent() {
+                const availableEvents = this.allEvents.filter(event => 
+                    this.age >= event.minAge && 
+                    this.age <= event.maxAge && 
+                    !this.usedEvents.has(event.id)
+                );
+                
+                if (availableEvents.length === 0) {
+                    return null;
+                }
+                
+                const event = availableEvents[Math.floor(Math.random() * availableEvents.length)];
+                this.usedEvents.add(event.id);
+                return event;
+            }
+
+            getGenericEventsForAge(age) {
+                const genericEvents = [];
+                
+                if (age <= 10) {
+                    genericEvents.push(
+                        {text: "你在玩耍中学到了新东西。", effects: {intelligence: 0.5, happiness: 1}, id: `generic_child_${age}`},
+                        {text: "你和小朋友们一起度过了快乐的时光。", effects: {happiness: 1, charm: 0.5}, id: `generic_play_${age}`},
+                        {text: "你今天特别乖，得到了家人的表扬。", effects: {happiness: 1, charm: 0.5}, id: `generic_good_${age}`}
+                    );
+                } else if (age <= 18) {
+                    genericEvents.push(
+                        {text: "你在学校度过了平常的一天。", effects: {intelligence: 0.5}, id: `generic_school_${age}`},
+                        {text: "你和朋友们一起讨论了有趣的话题。", effects: {charm: 0.5, happiness: 1}, id: `generic_friend_${age}`},
+                        {text: "你在学习上取得了小小的进步。", effects: {intelligence: 1, happiness: 0.5}, id: `generic_study_${age}`}
+                    );
+                } else if (age <= 30) {
+                    genericEvents.push(
+                        {text: "你在工作中积累了更多经验。", effects: {intelligence: 1}, id: `generic_work_${age}`},
+                        {text: "你和朋友们聚餐，聊了很多。", effects: {happiness: 1, charm: 0.5}, id: `generic_social_${age}`},
+                        {text: "你学会了一个小技能。", effects: {intelligence: 0.5, happiness: 0.5}, id: `generic_skill_${age}`}
+                    );
+                } else if (age <= 50) {
+                    genericEvents.push(
+                        {text: "你在家庭和工作中找到了平衡。", effects: {happiness: 1}, id: `generic_balance_${age}`},
+                        {text: "你为家庭付出了很多努力。", effects: {constitution: -0.5, happiness: 1}, id: `generic_family_${age}`},
+                        {text: "你在事业上稳步发展。", effects: {intelligence: 0.5, charm: 0.5}, id: `generic_career_${age}`}
+                    );
+                } else {
+                    genericEvents.push(
+                        {text: "你享受着宁静的退休生活。", effects: {happiness: 1, constitution: -0.3}, id: `generic_retire_${age}`},
+                        {text: "你和家人度过了温馨的时光。", effects: {happiness: 2}, id: `generic_family_time_${age}`},
+                        {text: "你回忆起人生中的美好时刻。", effects: {happiness: 1}, id: `generic_memory_${age}`}
+                    );
+                }
+                
+                return genericEvents;
+            }
+
+            processEvent(event) {
+                let effectsText = [];
+                if (event.effects && Object.keys(event.effects).length > 0) {
+                    Object.keys(event.effects).forEach(attr => {
+                        if (this.attributes[attr] !== undefined) {
+                            const oldValue = this.attributes[attr];
+                            this.attributes[attr] = Math.max(0, Math.min(10, 
+                                this.attributes[attr] + event.effects[attr]));
+                            
+                            const change = Math.round((this.attributes[attr] - oldValue) * 10) / 10;
+                            if (Math.abs(change) > 0.05) {
+                                const attrNames = {
+                                    intelligence: '智力',
+                                    constitution: '体质', 
+                                    happiness: '快乐',
+                                    charm: '魅力'
+                                };
+                                effectsText.push(`${attrNames[attr]}${change > 0 ? '+' : ''}${change}`);
+                            }
+                        }
+                    });
+                }
+
+                // 清空加载提示
+                const eventsContainer = document.getElementById('lifeEvents');
+                if (eventsContainer.querySelector('.loading-indicator')) {
+                    eventsContainer.innerHTML = '';
+                }
+
+                // 添加事件到列表
+                const eventElement = document.createElement('div');
+                eventElement.className = 'event-item';
+                eventElement.innerHTML = `
+                    <div class="event-age">${this.age}岁</div>
+                    <div class="event-description">${event.text}</div>
+                    ${effectsText.length > 0 ? `<div class="event-effects">${effectsText.join(', ')}</div>` : ''}
+                `;
+                
+                eventsContainer.appendChild(eventElement);
+                eventsContainer.scrollTop = eventsContainer.scrollHeight;
+
+                this.lifeEvents.push({age: this.age, text: event.text, effects: effectsText});
+            }
+
+            updateCurrentStats() {
+                document.getElementById('currentAge').textContent = this.age;
+                document.getElementById('currentIntelligence').textContent = Math.round(this.attributes.intelligence * 10) / 10;
+                document.getElementById('currentConstitution').textContent = Math.round(this.attributes.constitution * 10) / 10;
+                document.getElementById('currentHappiness').textContent = Math.round(this.attributes.happiness * 10) / 10;
+                document.getElementById('currentCharm').textContent = Math.round(this.attributes.charm * 10) / 10;
+            }
+
+            updateProgress() {
+                const progress = (this.age / this.maxAge) * 100;
+                document.getElementById('progressFill').style.width = `${progress}%`;
+                document.getElementById('ageProgress').textContent = this.age;
+            }
+
+            pauseLife() {
+                this.isPaused = true;
+                document.getElementById('pauseBtn').style.display = 'none';
+                document.getElementById('resumeBtn').style.display = 'inline-block';
+            }
+
+            resumeLife() {
+                this.isPaused = false;
+                document.getElementById('pauseBtn').style.display = 'inline-block';
+                document.getElementById('resumeBtn').style.display = 'none';
+                this.simulateLife();
+            }
+
+            skipToEnd() {
+                this.isGameRunning = false;
+                this.isPaused = false;
+                this.endLife();
+            }
+
+            endLife() {
+                this.isGameRunning = false;
+                this.isPaused = false;
+                
+                // 隐藏控制按钮
+                document.getElementById('pauseBtn').style.display = 'none';
+                document.getElementById('resumeBtn').style.display = 'none';
+                document.getElementById('skipBtn').style.display = 'none';
+                document.getElementById('showResultsBtn').style.display = 'inline-block';
+                
+                // 如果年龄太小，设置为自然死亡年龄
+                if (this.age < 60 && this.attributes.constitution > 0) {
+                    this.age = Math.min(this.maxAge, this.age + Math.floor(Math.random() * 20) + 10);
+                }
+                
+                this.calculateAchievements();
+                this.updateProgress();
+                this.updateCurrentStats();
+            }
+
+            calculateAchievements() {
+                this.achievements = [];
+                
+                if (this.age >= 80) this.achievements.push("🎂 长寿者 - 活到了80岁");
+                if (this.age <= 30) this.achievements.push("⚰️ 英年早逝 - 人生太短暂");
+                
+                if (this.attributes.intelligence >= 8) this.achievements.push("🧠 智者 - 拥有超高智力");
+                if (this.attributes.constitution >= 8) this.achievements.push("💪 强者 - 拥有强健体魄");
+                if (this.attributes.happiness >= 8) this.achievements.push("😊 乐观者 - 保持快乐心态");
+                if (this.attributes.charm >= 8) this.achievements.push("🌟 魅力之星 - 拥有超凡魅力");
+                
+                const totalStats = Object.values(this.attributes).reduce((sum, val) => sum + val, 0);
+                if (totalStats >= 32) this.achievements.push("🏆 人生赢家 - 全面发展");
+                if (totalStats <= 8) this.achievements.push("😔 平凡一生 - 普普通通");
+                
+                if (this.lifeEvents.length >= 40) this.achievements.push("📚 经历丰富 - 人生多姿多彩");
+                if (this.age >= 70 && this.attributes.happiness >= 7) this.achievements.push("😌 晚年幸福 - 安享晚年");
+                
+                // 特殊成就
+                if (this.attributes.intelligence >= 9) this.achievements.push("🎓 天才 - 智力超群");
+                if (this.attributes.constitution >= 9) this.achievements.push("🏃 铁人 - 体质超凡");
+                if (this.attributes.happiness >= 9) this.achievements.push("🌈 快乐源泉 - 永远乐观");
+                if (this.attributes.charm >= 9) this.achievements.push("👑 魅力王者 - 人见人爱");
+            }
+
+            showResults() {
+                this.showSection('resultsSection');
+                
+                const finalStats = document.getElementById('finalStats');
+                finalStats.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-label">享年</div>
+                        <div class="stat-value">${this.age}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">智力</div>
+                        <div class="stat-value">${Math.round(this.attributes.intelligence * 10) / 10}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">体质</div>
+                        <div class="stat-value">${Math.round(this.attributes.constitution * 10) / 10}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">快乐</div>
+                        <div class="stat-value">${Math.round(this.attributes.happiness * 10) / 10}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">魅力</div>
+                        <div class="stat-value">${Math.round(this.attributes.charm * 10) / 10}</div>
+                    </div>
+                `;
+
+                const achievementsList = document.getElementById('achievementsList');
+                if (this.achievements.length > 0) {
+                    achievementsList.innerHTML = this.achievements.map(achievement => 
+                        `<div class="achievement-item">${achievement}</div>`
+                    ).join('');
+                } else {
+                    achievementsList.innerHTML = '<div class="achievement-item">🤷 暂无成就 - 再试一次吧</div>';
+                }
+            }
+
+            showSection(sectionId) {
+                document.querySelectorAll('.game-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(sectionId).classList.add('active');
+            }
+
+            restartGame() {
+                this.attributes = {intelligence: 0, constitution: 0, happiness: 0, charm: 0};
+                this.remainingPoints = 20;
+                this.age = 0;
+                this.lifeEvents = [];
+                this.usedEvents = new Set(); // 重新初始化
+                this.achievements = [];
+                this.isGameRunning = false;
+                this.isPaused = false;
+                
+                this.showSection('attributeSection');
+                this.updateAttributeDisplay();
+                this.updatePointsDisplay();
+                this.updateButtonStates();
+                
+                console.log('游戏重启，事件池已重置');
+            }
+
+            quickRestart() {
+                this.restartGame();
+                this.randomAttributes();
+                setTimeout(() => this.startLife(), 500);
+            }
+        }
+
+        let game;
+
+        function changeAttribute(attr, delta) {
+            game.changeAttribute(attr, delta);
+        }
+
+        function randomAttributes() {
+            game.randomAttributes();
+        }
+
+        function startLife() {
+            game.startLife();
+        }
+
+        function pauseLife() {
+            game.pauseLife();
+        }
+
+        function resumeLife() {
+            game.resumeLife();
+        }
+
+        function skipToEnd() {
+            game.skipToEnd();
+        }
+
+        function showResults() {
+            game.showResults();
+        }
+
+        function restartGame() {
+            game.restartGame();
+        }
+
+        function quickRestart() {
+            game.quickRestart();
+        }
+
+        // 初始化游戏
+        window.addEventListener('load', () => {
+            game = new LifeRestartGame();
+            game.init();
+        });
+    </script>
+</body>
+</html> 

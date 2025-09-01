@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebP → JPG 转换器 - Dec20B</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #667eea;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.3);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: #8e9aaf;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-panel {
+            background: linear-gradient(135deg, #f8f9ff, #f0f2ff);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .file-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .settings-controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .setting-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .setting-group input[type="range"] {
+            width: 80px;
+        }
+
+        .setting-group input[type="color"] {
+            width: 40px;
+            height: 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .quality-value {
+            min-width: 35px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        #file {
+            display: none;
+        }
+
+        #drop {
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 40px 20px;
+            border-radius: 15px;
+            color: #667eea;
+            text-align: center;
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
+            cursor: pointer;
+        }
+
+        #drop:hover,
+        #drop.drag {
+            background: rgba(102, 126, 234, 0.05);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .drop-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.7;
+        }
+
+        .drop-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .drop-hint {
+            color: #8e9aaf;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        #list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .item {
+            background: white;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .item .name {
+            flex: 1;
+            min-width: 200px;
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .item .right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .item progress {
+            width: 120px;
+            height: 8px;
+            border-radius: 4px;
+            border: none;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .item progress::-webkit-progress-bar {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 4px;
+        }
+
+        .item progress::-webkit-progress-value {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 4px;
+        }
+
+        .status {
+            color: #8e9aaf;
+            font-size: 14px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .download-link {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .download-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(68, 160, 141, 0.3);
+        }
+
+        .footer {
+            text-align: center;
+            color: #8e9aaf;
+            font-size: 14px;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            line-height: 1.6;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            animation: toastSlide 0.3s ease;
+        }
+
+        @keyframes toastSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                margin: 10px;
+                margin-top: 60px;
+            }
+
+            .title {
+                font-size: 2em;
+            }
+
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .file-controls,
+            .settings-controls {
+                justify-content: center;
+            }
+
+            .item {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .item .right {
+                justify-content: center;
+            }
+
+            .back-link {
+                top: 15px;
+                right: 15px;
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+
+            #drop {
+                padding: 30px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../tools/" class="back-link">← 工具箱</a>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🖼️ WebP → JPG 转换器</h1>
+            <p class="subtitle">将WebP格式图片转换为JPG格式</p>
+            <div class="feature-badge">本地处理 · 隐私安全</div>
+        </div>
+
+        <div class="control-panel">
+            <div class="controls-row">
+                <div class="file-controls">
+                    <input id="file" type="file" accept="image/webp" multiple />
+                    <button id="pick" class="btn">📁 选择文件</button>
+                    <button id="clear" class="btn secondary">🗑️ 清空列表</button>
+                </div>
+                
+                <div class="settings-controls">
+                    <div class="setting-group">
+                        <span>🎚️ 质量</span>
+                        <input id="q" type="range" min="0" max="1" step="0.01" value="0.86" />
+                        <span id="qv" class="quality-value">0.86</span>
+                    </div>
+                    <div class="setting-group">
+                        <span>🎨 透明底色</span>
+                        <input id="bg" type="color" value="#ffffff" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="drop" tabindex="0" aria-label="拖拽文件到此">
+            <div class="drop-icon">📎</div>
+            <div class="drop-text">拖拽 WebP 文件到这里</div>
+            <div class="drop-hint">
+                或点击上方"选择文件"按钮<br>
+                支持批量转换 · 透明区域将以所选底色合成
+            </div>
+        </div>
+
+        <ul id="list" aria-live="polite" aria-busy="false"></ul>
+
+        <div class="footer">
+            <p>🔒 <strong>隐私保护</strong>：所有处理在您的浏览器本地进行，文件不会上传到服务器</p>
+            <p>🌐 <strong>兼容性</strong>：支持现代浏览器（Chrome/Edge/Firefox/Safari）</p>
+            <p>⚡ <strong>功能特色</strong>：批量转换 · 质量调节 · 透明背景处理</p>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            const $ = s => document.querySelector(s);
+            const elFile = $('#file');
+            const elPick = $('#pick');
+            const elClear = $('#clear');
+            const elDrop = $('#drop');
+            const elList = $('#list');
+            const elQ = $('#q');
+            const elQv = $('#qv');
+            const elBg = $('#bg');
+
+            elQ.addEventListener('input', () => elQv.textContent = elQ.value);
+            elPick.addEventListener('click', () => elFile.click());
+            elClear.addEventListener('click', () => { 
+                elList.innerHTML = '';
+                toast('✅ 列表已清空');
+            });
+
+            elFile.addEventListener('change', e => handleFiles(e.target.files));
+
+            // 拖拽交互
+            ['dragenter','dragover'].forEach(ev => elDrop.addEventListener(ev, e => { 
+                e.preventDefault(); 
+                e.dataTransfer.dropEffect = 'copy'; 
+                elDrop.classList.add('drag'); 
+            }));
+            
+            ['dragleave','drop'].forEach(ev => elDrop.addEventListener(ev, e => { 
+                e.preventDefault(); 
+                elDrop.classList.remove('drag'); 
+            }));
+            
+            elDrop.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+
+            // 点击拖拽区域也可以选择文件
+            elDrop.addEventListener('click', () => elFile.click());
+
+            // 主入口
+            function handleFiles(fileList){
+                const files = [...fileList].filter(f => /\.webp$/i.test(f.name) || f.type === 'image/webp');
+                if (!files.length){
+                    toast('❌ 未检测到 WebP 文件');
+                    return;
+                }
+                toast(`📥 检测到 ${files.length} 个 WebP 文件，开始转换...`);
+                files.forEach(processOne);
+            }
+
+            // 处理单个文件
+            async function processOne(file){
+                const item = document.createElement('li');
+                item.className = 'item';
+                item.innerHTML = `
+                    <span class="name" title="${escapeHtml(file.name)}">📄 ${escapeHtml(file.name)}</span>
+                    <div class="right">
+                        <progress max="100" value="0"></progress>
+                        <span class="status">准备中...</span>
+                    </div>
+                `;
+                elList.appendChild(item);
+
+                const progress = item.querySelector('progress');
+                const statusEl = item.querySelector('.status');
+
+                try {
+                    statusEl.textContent = '🔄 解码中...'; 
+                    progress.value = 10;
+                    const bitmap = await decode(file);
+
+                    statusEl.textContent = '🎨 处理中...'; 
+                    progress.value = 45;
+                    const blob = await toJPEG(bitmap, parseFloat(elQ.value), elBg.value);
+
+                    statusEl.textContent = '📦 生成中...'; 
+                    progress.value = 85;
+                    const url = URL.createObjectURL(blob);
+
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = replaceExt(file.name, '.jpg');
+                    a.textContent = `💾 下载 ${a.download}`;
+                    a.className = 'download-link';
+                    a.title = `文件大小: ${fmtSize(blob.size)}`;
+                    a.addEventListener('click', () => {
+                        toast('⬇️ 开始下载...');
+                        setTimeout(()=>URL.revokeObjectURL(url), 1500);
+                    }, { once: true });
+
+                    const right = item.querySelector('.right');
+                    right.innerHTML = '';
+                    right.appendChild(a);
+                    
+                    progress.value = 100;
+                    toast('✅ 转换完成！');
+                } catch(err){
+                    statusEl.textContent = '❌ 失败：' + (err && err.message ? err.message : String(err));
+                    statusEl.style.color = '#e74c3c';
+                    progress.remove();
+                    toast('❌ 转换失败：' + err.message);
+                }
+            }
+
+            // 使用 createImageBitmap 解码，老环境回退到 <img>
+            async function decode(file){
+                if ('createImageBitmap' in window){
+                    return await createImageBitmap(file);
+                }
+                const url = URL.createObjectURL(file);
+                try{
+                    const img = await new Promise((res, rej)=>{ 
+                        const im = new Image(); 
+                        im.onload = ()=>res(im); 
+                        im.onerror = rej; 
+                        im.src = url; 
+                    });
+                    // 将 HTMLImageElement 包装到 Canvas 转换为 ImageBitmap-like
+                    const c = document.createElement('canvas'); 
+                    c.width = img.naturalWidth; 
+                    c.height = img.naturalHeight; 
+                    c.getContext('2d').drawImage(img,0,0);
+                    return await createImageBitmap(c);
+                } finally { 
+                    URL.revokeObjectURL(url); 
+                }
+            }
+
+            // 合成到无透明背景并导出为 JPEG
+            async function toJPEG(bitmap, quality=0.86, bgColor='#ffffff'){
+                const canvas = document.createElement('canvas');
+                canvas.width = bitmap.width; 
+                canvas.height = bitmap.height;
+                const ctx = canvas.getContext('2d', { alpha: false });
+                
+                // 先铺底色，避免有 alpha 的 WebP 变黑边
+                ctx.save();
+                ctx.fillStyle = bgColor; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(bitmap, 0, 0);
+                ctx.restore();
+                
+                // 导出为 JPEG Blob
+                const blob = await new Promise((resolve)=>canvas.toBlob(resolve, 'image/jpeg', clamp01(quality)));
+                if (!blob) throw new Error('当前浏览器不支持导出 JPEG');
+                
+                // 释放内存
+                if ('close' in bitmap) try { bitmap.close(); } catch(_){}
+                return blob;
+            }
+
+            // 小工具函数
+            function replaceExt(name, ext){ 
+                return name.replace(/\.[^.]+$/, '') + ext; 
+            }
+            
+            function fmtSize(n){ 
+                if (n < 1024) return n + ' B';
+                if (n < 1024 * 1024) return (n/1024).toFixed(1) + ' KB';
+                return (n/(1024*1024)).toFixed(1) + ' MB';
+            }
+            
+            function clamp01(x){ 
+                return Math.max(0, Math.min(1, x)); 
+            }
+            
+            function escapeHtml(s){ 
+                return s.replace(/[&<>"']/g, c => ({
+                    '&':'&amp;',
+                    '<':'&lt;',
+                    '>':'&gt;',
+                    '"':'&quot;',
+                    '\'':'&#39;'
+                }[c])); 
+            }
+            
+            function toast(msg){
+                // 移除现有的toast
+                const existing = $('.toast');
+                if (existing) existing.remove();
+                
+                const t = document.createElement('div');
+                t.className = 'toast';
+                t.textContent = msg;
+                document.body.appendChild(t); 
+                setTimeout(()=>{
+                    if (t.parentNode) t.remove();
+                }, 2500);
+            }
+
+            // 初始化
+            toast('🎉 WebP转换器已就绪！');
+        })();
+    </script>
+</body>
+</html> 
