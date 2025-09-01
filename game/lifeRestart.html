@@ -1,5 +1,6 @@
 ---
 layout: null
+permalink: /game/lifeRestart.html
 ---
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -648,7 +649,7 @@ layout: null
 
             async loadEvents() {
                 try {
-                    const response = await fetch('/game/lifeEvents.txt');
+                    const response = await fetch('lifeEvents.txt');
                     if (!response.ok) {
                         throw new Error('Failed to load events file');
                     }
